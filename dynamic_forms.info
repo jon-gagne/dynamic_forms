@@ -1,0 +1,4 @@
+name = Dynamic Forms
+description = Advanced forms that can be dynamically displayed.
+core = 7.x
+package = Forms
