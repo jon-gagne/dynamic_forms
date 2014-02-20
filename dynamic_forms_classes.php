@@ -9,7 +9,8 @@ class Form {
   public static $default_lang = 'eng';
   public static $lang_list = array('eng', 'fra');
   public $translations = array();
-  public $name;
+  public $name = '';
+  public $default_page;
   
   public $pages = array();
   public $page_properties = array();
@@ -60,9 +61,9 @@ class Form {
       }
     }
     // If form name not set...
-    if ($this->getName() == '') {
+    if ($formObj->getName() == '') {
       // then create a generic name
-      $this->setName('form' . Form::$form_id_counter++);      
+      $formObj->setName('form' . Form::$form_id_counter++);      
     }
     
     // Return new form
@@ -76,13 +77,15 @@ class Form {
     // Add form reference to page
     $page->form_ref = $this;
     // If page name is set
-    if (isset($page->getName()) AND $page->getName() != '') {
+    if (($element->getName() != FALSE) AND ($page->getName() != '')) {
       $this->pages[$page->getName()] = $page;
     }
     // If name not set, generate a name
-    else {     
+    else {
       $this->pages['page' . $this->page_id_counter++] = $page;
     }
+    // Set default page if not set
+    $this->default_page = $page;    
   }
   
   // Get & Set Functions
@@ -102,7 +105,7 @@ class Page {
   public $elements = array();  
   public $page_element_properties = array();
   public $page_properties = array();
-  public $name;
+  public $name = '';
   public $form_ref;
   public $translations;
   
@@ -153,9 +156,9 @@ class Page {
       }
     }
     // If form name not set...
-    if ($this->getName() == '') {
+    if ($pageObj->getName() == '') {
       // then create a generic name
-      $this->setName('page' . Page::$page_id_counter++);      
+      $pageObj->setName('page' . Page::$page_id_counter++);      
     }
     
     return $pageObj;
@@ -167,7 +170,7 @@ class Page {
    */
   public function addElement(Element $element) {
     //$this->elements[$this->element_id_counter++] = $element;
-    if (isset($element->getName()) AND $element->getName() != '') {
+    if (($element->getName() != FALSE) AND ($element->getName() != '')) {
       $this->pages[$element->getName()] = $element;
     }
     // If name not set, generate a name
@@ -234,17 +237,17 @@ class Page {
  * Generic Element Class
  */
 class Element {
+
   public $attributes = array();
   public $element_properties = array();
   public $dependencies = array();
   public $required_by = array();
   public $name;
   public $translations = array();
-  
   public $value = '';
   public $value_set = false;
-  
-  /** 
+
+  /**
    * Element Constructor
    */
   public function __construct() {
@@ -255,7 +258,7 @@ class Element {
       }
     }
   }
-  
+
   /**
    * Builds a Page Instance (Factory Function)
    */
@@ -267,7 +270,7 @@ class Element {
     foreach ($elementArray as $key => $value) {
       // Add a standard Forms API attribute
       if ($key[0] == '#') {
-        $this->attributes[$key] = $value; 
+        $elementObj->attributes[$key] = $value;
       }
       // Add a dynamics forms property/attribut
       elseif ($key[0] == '@') {
@@ -277,7 +280,7 @@ class Element {
           $pos = strpos($key, '#');
           if ($pos AND $pos > 3) {
             // Get language
-            $lang = substr($key, 3, $pos-3);
+            $lang = substr($key, 3, $pos - 3);
             // Get translated attribute
             $attribute = substr($key, $pos);
             // Create translation, which is stored in $value
@@ -285,22 +288,21 @@ class Element {
           }
         }
         /*
-        elseif ($key == '@name') {
-          // TODO: Add code          
-        }
+          elseif ($key == '@name') {
+          // TODO: Add code
+          }
          */
         // Build all other dynamic forms properties
         else {
-          $this->element_properties[$key] = $value;
+          $elementObj->element_properties[$key] = $value;
         }
       }
     }
-    
+
     // Return new element
     return $elementObj;
   }
-  
-  
+
   /**
    * Renders Dynamic Form Element to Form API Field Element
    */
@@ -309,22 +311,25 @@ class Element {
     // TODO: Add code here
     return $field;
   }
-  
+
   // Get & Set Functions
-  public function getName() { return $this->name; }
+  public function getName() {
+    return $this->name;
+  }
+
   public function setName($newName) {
     $this->name = $newName;
     //TODO: add name as property
-  } 
-}
+  }
 
+}
 
 /**
  * Get any submitted values
  */
 function dynamic_forms_get_value($field) {
   // TODO: Get value
-  
+
   $value = '';
   // Return value;
   return $value;
@@ -340,7 +345,6 @@ function dynamic_forms_value_submitted($field) {
   return $result;
 }
 
-
 /**
  * Get any submitted values
  */
@@ -349,13 +353,13 @@ function dynamic_forms_evaluate_condition(array $condition) {
   $cond_element = trim($condition[0]);
   $cond_operator = trim($condition[1]);
   $cond_value = trim($condition[2]);
-  
+
   // Check if a field has been selected
   if (dynamic_forms_get_value()) {
-    
+
     // Get the value
     $cond_element_value = dynamic_forms_value_submitted($cond_element);
-    
+
     // Check conditional statement
     if ($cond_operator == 'no_value') {
       return FALSE;
@@ -395,3 +399,4 @@ function dynamic_forms_evaluate_condition(array $condition) {
     }
   }
 }
+

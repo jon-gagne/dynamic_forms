@@ -1,44 +1,59 @@
 <?php
 
-namespace DF;
-
+//namespace DF;
 require_once 'dynamic_forms_classes.php';
-require_once 'clientform1.php';
+//require_once 'clientform1.php';
+//require_once 'test.php';
+
+ini_set('display_errors',1); 
+error_reporting(E_ALL);
 
 /**
  * Implements hook_menu().
  */
 function dynamic_forms_menu() {
+  /*
+    $items['hello'] = array(
+    'title' => 'Hello world!',
+    'page callback' => 'df_callback',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK
+    );
+   */
   $items['forms'] = array(
     'title' => 'Dynamic Forms',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('dynamic_forms_generator'),
     'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
   );
-  
   return $items;
 }
 
+function df_callback() {
+  return 'Hello world!';
+}
 
 /**
  * AJAX-enabled select element causes replacement of a set of checkboxes
  * based on the selection.
  */
 function dynamic_forms_generator($form, &$form_state) {
-  $default = !empty($form_state['values']['field_type_select']) ? $form_state['values']['field_type_select'] : 'none';
-  $form['field_type_select'] = array(
+  /*
+    $default = !empty($form_state['values']['field_type_select']) ? $form_state['values']['field_type_select'] : 'none';
+    $form['field_type_select'] = array(
     '#title' => t('What type of field do you want?'),
     '#type' => 'select',
     '#options' => array('none' => 'None', 'checkbox' => 'Checkbox', 'textfield' => 'Textfield'),
     '#default_value' => $default,
     '#ajax' => array(
-      'callback' => 'dynamic_forms_generator_callback',
-      'wrapper' => 'dynamic-fields-div',
-      'method' => 'replace',
-      'effect' => 'fade',
+    'callback' => 'dynamic_forms_generator_callback',
+    'wrapper' => 'dynamic-fields-div',
+    'method' => 'replace',
+    'effect' => 'fade',
     ),
-  );
-  $form['dynamic_fields_fieldset'] = array(
+    );
+    $form['dynamic_fields_fieldset'] = array(
     '#title' => t("Generated Field"),
     // The prefix/suffix provide the div that we're replacing, named by
     // #ajax['wrapper'] above.
@@ -46,22 +61,40 @@ function dynamic_forms_generator($form, &$form_state) {
     '#suffix' => '</div>',
     '#type' => 'fieldset',
     '#description' => t('This is where we get automatically generated checkboxes'),
-  );
-  
-  $field_type = !empty($form_state['values']['field_type_select']) ? $form_state['values']['field_type_select'] : 'none';
-  if ($field_type != 'none') {
-    $form['dynamic_fields_fieldset']['field1'] = array(
-        '#type' => $field_type,
-        '#title' => $field_type,
     );
-  }
-  
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Submit'),
+
+    $field_type = !empty($form_state['values']['field_type_select']) ? $form_state['values']['field_type_select'] : 'none';
+    if ($field_type != 'none') {
+    $form['dynamic_fields_fieldset']['field1'] = array(
+    '#type' => $field_type,
+    '#title' => $field_type,
+    );
+    }
+   * 
+   */
+
+  $select_field = array(
+    '@name' => 'field1',
+    '#title' => 'What type of field do you want?',
+    '#description' => 'Select a value',
+    '@L:fra#title' => 'French: What type of field do you want?',
+    '#type' => 'select',
+    '#options' => array('none' => 'None', 'checkbox' => 'Checkbox', 'textfield' => 'Textfield'),
+    '@L:fra#options' => array('none' => 'F(None)', 'checkbox' => 'F(Checkbox)', 'textfield' => 'F(Textfield)'),
+    '#default_value' => 'none',
   );
+
+  $elementObj = DF\Element::build($select_field);
+
+  $form['test'] = $elementObj->render();
+
+  //$form['submit'] = array(
+  //  '#type' => 'submit',
+  //  '#value' => t('Submit'),
+  //);
   return $form;
 }
+
 /**
  * Callback element needs only select the portion of the form to be updated.
  * Since #ajax['callback'] return can be HTML or a renderable array (or an
@@ -70,11 +103,6 @@ function dynamic_forms_generator($form, &$form_state) {
 function dynamic_forms_generator_callback($form, $form_state) {
   return $form['dynamic_fields_fieldset'];
 }
-
-
-
-
-
 
 /**
  * AJAX-enabled select element causes replacement of a set of checkboxes
@@ -116,6 +144,7 @@ function dynamic_forms_autocheckboxes($form, &$form_state) {
   );
   return $form;
 }
+
 /**
  * Callback element needs only select the portion of the form to be updated.
  * Since #ajax['callback'] return can be HTML or a renderable array (or an
